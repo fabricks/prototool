@@ -30,7 +30,7 @@ RUN curl -sSL \
   -o /usr/local/bin/protoc-gen-grpc-web && \
   chmod +x /usr/local/bin/protoc-gen-grpc-web
 
-ENV YARPC_VERSION=1.37.3
+ENV YARPC_VERSION=1.38.0
 RUN git clone --depth 1 -b v${YARPC_VERSION} https://github.com/yarpc/yarpc-go.git /go/src/go.uber.org/yarpc && \
     cd /go/src/go.uber.org/yarpc && \
     GO111MODULE=on go mod init && \
@@ -56,6 +56,7 @@ RUN mkdir -p /tmp/protoc && \
   unzip protoc.zip && \
   mv /tmp/protoc/include /usr/local/include
 
+
 RUN mkdir -p /tmp/prototool
 COPY go.mod go.sum /tmp/prototool/
 RUN cd /tmp/prototool && go mod download
@@ -80,11 +81,14 @@ ENV \
   ALPINE_PROTOBUF_VERSION_SUFFIX=r1
 
 RUN echo 'http://dl-cdn.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories && \
-  apk add --update --no-cache bash curl git grpc=${GRPC_VERSION}-${ALPINE_GRPC_VERSION_SUFFIX} protobuf=${PROTOBUF_VERSION}-${ALPINE_PROTOBUF_VERSION_SUFFIX} && \
+  apk add --update --no-cache bash curl git grpc=${GRPC_VERSION}-${ALPINE_GRPC_VERSION_SUFFIX} protobuf=${PROTOBUF_VERSION}-${ALPINE_PROTOBUF_VERSION_SUFFIX} nodejs nodejs-npm && \
   rm -rf /var/cache/apk/*
 
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /usr/local/include /usr/include
+
+ENV TS_PROTOC_GEN=latest
+RUN npm install -g ts-protoc-gen@${TS_PROTOC_GEN}
 
 ENV GOGO_PROTOBUF_VERSION=1.2.1 \
   GOLANG_PROTOBUF_VERSION=1.3.1 \
